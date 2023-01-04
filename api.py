@@ -18,7 +18,7 @@ signal.signal(signal.SIGINT, handler_signal)
 
 def extract():
     headers = {"Accept": "application/json"}
-    key = ...
+    key = "e6ac5a0300f5419bb042259782abc7e8"
 
     url_teams = f"https://api.sportsdata.io/v3/nba/scores/json/teams?key={key}"
     # auth = HTTPBasicAuth("apikey", "e6ac5a0300f5419bb042259782abc7e8")
@@ -42,7 +42,7 @@ def extract():
     """
     Player info such as ID, status, TeamID, Names, Position, Photo, Jersey, Team
     """
-    url_team_players_info = f"https://api.sportsdata.io/v3/nba/scores/json/Players/{selected_team}?key={key}"
+    url_team_players_info = f"https://api.sportsdata.io/v3/nba/scores/json/Players/{selected_team}?key=" + key
     players = requests.get(url_team_players_info, headers=headers).text
     players = json.loads(players)
     return players, name
@@ -50,7 +50,7 @@ def extract():
 
 def transform(players):
     headers = {"Accept": "application/json"}
-    key = ...
+    key = "e6ac5a0300f5419bb042259782abc7e8"
     general_data = {"Name": [],
                     "Games": [],
                     "GS": [],
@@ -86,7 +86,7 @@ def transform(players):
         general_data["Name"].append(name)
         throw_data["Name"].append(name)
 
-        url_certain_game = f"https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2022/{player_id}/all?key={key}"
+        url_certain_game = f"https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2022/{player_id}/all?key=" + key
         games = requests.get(url_certain_game, headers=headers).text
         games = json.loads(games)
 
@@ -112,26 +112,27 @@ def transform(players):
         twpa = 0
 
         for game in games:
-            n_games += 1
-            gs += game["Started"]
-            minutes += game["Minutes"]
-            pts += game["Points"]
-            o_r += game["OffensiveRebounds"]
-            d_r += game["DefensiveRebounds"]
-            reb += game["Rebounds"]
-            ast += game["Assists"]
-            stl += game["Steals"]
-            blk += game["BlockedShots"]
-            to += game["Turnovers"]
-            pf += game["PersonalFouls"]
-            fgm += game["FieldGoalsMade"]
-            fga += game["FieldGoalsAttempted"]
-            tpm += game["ThreePointersMade"]
-            tpa += game["ThreePointersAttempted"]
-            ftm += game["FreeThrowsMade"]
-            fta += game["FreeThrowsAttempted"]
-            twpm += game["TwoPointersMade"]
-            twpa += game["TwoPointersAttempted"]
+            if game not in ["statusCode", "message"]:
+                n_games += 1
+                gs += game["Started"]
+                minutes += game["Minutes"]
+                pts += game["Points"]
+                o_r += game["OffensiveRebounds"]
+                d_r += game["DefensiveRebounds"]
+                reb += game["Rebounds"]
+                ast += game["Assists"]
+                stl += game["Steals"]
+                blk += game["BlockedShots"]
+                to += game["Turnovers"]
+                pf += game["PersonalFouls"]
+                fgm += game["FieldGoalsMade"]
+                fga += game["FieldGoalsAttempted"]
+                tpm += game["ThreePointersMade"]
+                tpa += game["ThreePointersAttempted"]
+                ftm += game["FreeThrowsMade"]
+                fta += game["FreeThrowsAttempted"]
+                twpm += game["TwoPointersMade"]
+                twpa += game["TwoPointersAttempted"]
 
         if n_games != 0:
             general_data["Games"].append(n_games)
@@ -187,34 +188,35 @@ def transform(players):
 
 def load(per_game_info, per_game_throws_info, team_name):
     pdf = FPDF()
-    legend_1 = """
-    GS: Games Started
-    Min: Minutes played
-    PTS: Points
-    OR: Offensive Rebounds
-    DR: Deffensive Rebounds
-    REB: Rebounds
-    AST: Assists
-    STL: Steals
-    BLK: Blocks
-    TO: Turnovers
-    PF: Personal Fouls
-    """
+    legend_1 = {
+        "GS": "Games Started",
+        "Min": "Minutes played",
+        "PTS": "Points",
+        "OR": "Offensive Rebounds",
+        "DR": "Deffensive Rebounds",
+        "REB": "Rebounds",
+        "AST": "Assists",
+        "STL": "Steals",
+        "BLK": "Blocks",
+        "TO": "Turnovers",
+        "PF": "Personal Fouls"
+    }
 
-    legend_2 = """
-    FGM: Field Goals Made
-    FGA: Field Goals Attempted
-    FG%: Fields Goals Percentage
-    3PM: Three Point Filed Goals Made
-    3PA: Three Point Filed Goals Attempted
-    3P%: Three Point Field Goals Percentage
-    FTM: Free Thros Made
-    FTA: Free Throws Attempted
-    FT%: Free Throws Percentage
-    2PM: Two Point Filed Goals Made
-    2PA: Two Point Filed Goals Attempted
-    2P%: Two Point Field Goals Percentage
-    """
+    legend_2 = {
+        "FGM": "Field Goals Made",
+        "FGA": "Field Goals Attempted",
+        "FG%": "Field Goals Percentage",
+        "3PM": "Three Point Field Goals Made",
+        "3PA": "Three Point Field Goals Attempted",
+        "3P%": "Three Point Field Goals Percentage",
+        "FTM": "Free Throws Made",
+        "FTA": "Free Throws Attempted",
+        "FT%": "Free Throws Percentage",
+        "2PM": "Two Point Field Goals Made",
+        "2PA": "Two Point Field Goals Attempted",
+        "2P%": "Two Point Field Goals Percentage"
+    }
+
     # First page
     pdf.add_page(orientation="L")
 
@@ -242,7 +244,6 @@ def load(per_game_info, per_game_throws_info, team_name):
         pdf.cell(18, 7, str(per_game_info.loc[row, "PF"]), 1, 2, "C")
 
     # Second page
-    pdf.set_x(0)
     pdf.add_page(orientation="L")
     pdf.set_font("Times", "b", 18)
     pdf.cell(0, 30, "PER-GAME THROWS STATS ANALYSIS (2022)", 0, 2, "L")
@@ -265,6 +266,37 @@ def load(per_game_info, per_game_throws_info, team_name):
         for column in first_columns[1:-1]:
             pdf.cell(18, 7, str(per_game_throws_info.loc[row, column]), 1, 0, "C")
         pdf.cell(18, 7, str(per_game_throws_info.loc[row, "2P%"]), 1, 2, "C")
+
+    # Third page (legends)
+    pdf.add_page(orientation="L")
+    pdf.set_x(16)
+    pdf.set_font("Times", "", 15)
+    pdf.cell(w=0, h=10, txt="Per-game Stats Legend", border=0, ln=2, align="L")
+
+    pdf.set_font("Times", "", 12)
+    cont = 0
+    for key, value in legend_1.items():
+        cont += 1
+        if cont % 3 == 0 or cont == len(legend_1):
+            pdf.cell(w=80, h=9, txt=f"{key}: {value}", border=1, ln=2, align="C")
+            pdf.set_x(16)
+        else:
+            pdf.cell(w=80, h=9, txt=f"{key}: {value}", border=1, ln=0, align="C")
+
+    pdf.cell(w=0, h=10, txt="", border=0, ln=2, align="L")
+    pdf.set_font("Times", "", 15)
+    pdf.cell(w=0, h=10, txt="Per-game Throws Stats Legend", border=0, ln=2, align="L")
+
+    pdf.set_font("Times", "", 12)
+    cont = 0
+    for key, value in legend_2.items():
+        cont += 1
+        if cont % 3 == 0 or cont == len(legend_2):
+            pdf.cell(w=80, h=9, txt=f"{key}: {value}", border=1, ln=2, align="C")
+            pdf.set_x(16)
+        else:
+            pdf.cell(w=80, h=9, txt=f"{key}: {value}", border=1, ln=0, align="C")
+
     pdf.output("nba_analysis.pdf", "F")
 
 
