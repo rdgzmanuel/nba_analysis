@@ -18,8 +18,9 @@ signal.signal(signal.SIGINT, handler_signal)
 
 def extract():
     headers = {"Accept": "application/json"}
+    key = ...
 
-    url_teams = "https://api.sportsdata.io/v3/nba/scores/json/teams?key=e6ac5a0300f5419bb042259782abc7e8"
+    url_teams = f"https://api.sportsdata.io/v3/nba/scores/json/teams?key={key}"
     # auth = HTTPBasicAuth("apikey", "e6ac5a0300f5419bb042259782abc7e8")
     # data = requests.get(url_teams, headers=headers, auth=auth).text
     teams = requests.get(url_teams, headers=headers).text  # teams es un json str
@@ -38,18 +39,10 @@ def extract():
         if run is True:
             print("The team doesn't exist.")
 
-    # Matches information (not used)
-    # date = "2017-DEC-29"
-    # url_certain_match = f"https://api.sportsdata.io/v3/nba/scores/json/TeamGameStatsByDate/{date}?key=e6ac5a0300f5419bb042259782abc7e8"
-    # matches = requests.get(url_certain_match, headers=headers).text
-    # matches = json.loads(matches)
-    # for match in matches:
-    #     print(match)
-
     """
     Player info such as ID, status, TeamID, Names, Position, Photo, Jersey, Team
     """
-    url_team_players_info = f"https://api.sportsdata.io/v3/nba/scores/json/Players/{selected_team}?key=e6ac5a0300f5419bb042259782abc7e8"
+    url_team_players_info = f"https://api.sportsdata.io/v3/nba/scores/json/Players/{selected_team}?key={key}"
     players = requests.get(url_team_players_info, headers=headers).text
     players = json.loads(players)
     return players, name
@@ -57,6 +50,7 @@ def extract():
 
 def transform(players):
     headers = {"Accept": "application/json"}
+    key = ...
     general_data = {"Name": [],
                     "Games": [],
                     "GS": [],
@@ -92,7 +86,7 @@ def transform(players):
         general_data["Name"].append(name)
         throw_data["Name"].append(name)
 
-        url_certain_game = f"https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2022/{player_id}/all?key=e6ac5a0300f5419bb042259782abc7e8"
+        url_certain_game = f"https://api.sportsdata.io/v3/nba/stats/json/PlayerGameStatsBySeason/2022/{player_id}/all?key={key}"
         games = requests.get(url_certain_game, headers=headers).text
         games = json.loads(games)
 
