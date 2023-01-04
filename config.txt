@@ -1,0 +1,3 @@
+En las funciones de extract y transform para trabajar con los datos
+de Sportsdata.io, será necesario que se introduzca una clave válida en
+ambas funciones. La variable key está justo al comenzar la función en ambos casos.
